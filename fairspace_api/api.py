@@ -24,22 +24,25 @@ def report_duration(task, start):
 @dataclass
 class Count:
     totalElements: int
+    timeout: bool
 
 
 @dataclass
 class Page:
     totalPages: int
     totalElements: int
-    page: int
-    size: int
     rows: Sequence[any]
     hasNext: bool
+    timeout: bool
+    page: Optional[int] = None
+    size: Optional[int] = None
 
 
 class FairspaceApi:
     def __init__(self,
                  url='http://localhost:8080',
                  keycloak_url='http://localhost:5100',
+                 realm='fairspace',
                  client_id='workspace-client',
                  client_secret='**********',
                  username='organisation-admin',
@@ -47,6 +50,7 @@ class FairspaceApi:
                  ):
         self.url = url
         self.keycloak_url = keycloak_url
+        self.realm = realm
         self.client_id = client_id
         self.client_secret = client_secret
         self.username = username
@@ -55,6 +59,10 @@ class FairspaceApi:
         self.token_expiry = None
 
     def fetch_token(self) -> str:
+        """
+
+        :return:
+        """
         # Fetch access token
         params = {
             'client_id': self.client_id,
@@ -67,11 +75,12 @@ class FairspaceApi:
             'Content-type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json'
         }
-        response = requests.post(f"{self.keycloak_url}/auth/realms/fairspace/protocol/openid-connect/token",
+        response = requests.post(f"{self.keycloak_url}/auth/realms/{self.realm}/protocol/openid-connect/token",
                                  data=params,
                                  headers=headers)
         if not response.ok:
-            log.error('Error fetching token!', response.json())
+            log.error('Error fetching token!')
+            log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
         data = response.json()
         token = data['access_token']
@@ -233,11 +242,12 @@ class FairspaceApi:
             log.error(f'Error retrieving {view} view page!')
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
+        print(response.json())
         return Page(**response.json())
 
-    def retrieve_count(self,
-                       view: str,
-                       filters=None) -> Count:
+    def count(self,
+              view: str,
+              filters=None) -> Count:
         data = {
             'view': view
         }

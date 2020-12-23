@@ -45,7 +45,7 @@ def main():
     print()
     print(f'Fetching {view} view count')
     start = time.time()
-    count = api.retrieve_count(view)
+    count = api.count(view)
     duration = 1000*(time.time() - start)
     print(f'(took {duration:,.0f} ms)')
     print(f'{count.totalElements} results.')

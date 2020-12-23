@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import importlib
 import logging
+import os
 import random
+import sys
 import time
 import uuid
 from datetime import datetime
@@ -9,6 +11,7 @@ from typing import Sequence, Dict
 from urllib.parse import quote
 from rdflib import Graph, Literal, RDF, URIRef
 from rdflib.namespace import DCAT, Namespace, RDFS
+from dotenv import load_dotenv
 
 import numpy
 
@@ -33,12 +36,12 @@ def random_subset(items, count: int):
 class TestData:
     def __init__(self):
         self.empty_files = True
-        self.subject_count = 30000
-        self.event_count = 60000
-        self.sample_count = 120000
-        self.collection_count = 10
-        self.dirs_per_collection = 100
-        self.files_per_dir = 1500
+        self.subject_count = 1000
+        self.event_count = 1500
+        self.sample_count = 3000
+        self.collection_count = 5
+        self.dirs_per_collection = 50
+        self.files_per_dir = 500
 
         self.words = [
             'beverage',
@@ -76,8 +79,30 @@ class TestData:
         self.sample_event: Dict[str, str] = {}
         self.event_topography: Dict[str, str] = {}
 
-        self.root = Namespace('http://localhost:8080/api/v1/webdav/')
-        self.api = FairspaceApi()
+        local = os.environ.get('LOCAL') is None or os.environ.get('LOCAL').lower() == 'true'
+        if local:
+            fairspace_url = 'http://localhost:8080'
+            self.api = FairspaceApi()
+        else:
+            fairspace_url = 'https://fairspace.ci.fairway.app'
+            client_secret = os.environ.get('CLIENT_SECRET')
+            if client_secret is None or len(client_secret) == 0:
+                log.error('Please configure the CLIENT_SECRET environment variable.')
+                sys.exit(1)
+            password = os.environ.get('KEYCLOAK_PASSWORD')
+            if password is None or len(password) == 0:
+                log.error('Please configure the KEYCLOAK_PASSWORD environment variable.')
+                sys.exit(1)
+            self.api = FairspaceApi(
+                url=fairspace_url,
+                keycloak_url='https://keycloak.ci.fairway.app',
+                realm='ci',
+                client_id='fairspace-ci-private',
+                client_secret=client_secret,
+                username='organisation-admin-ci',
+                password=password
+            )
+        self.root = Namespace(f'{fairspace_url}/api/v1/webdav/')
 
     def update_taxonomies(self):
         # Update taxonomies
@@ -324,6 +349,7 @@ class TestData:
 
 
 def main():
+    load_dotenv()
     TestData().run()
 
 
