@@ -17,8 +17,8 @@ def sparql_query():
         'First 500 samples': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT DISTINCT ?sample
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -33,8 +33,8 @@ def sparql_query():
         'Count all samples': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT COUNT(DISTINCT ?sample)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -47,10 +47,10 @@ def sparql_query():
         'Select samples by nature, gender and event type': {
             'query': """
     PREFIX curie:  <https://institut-curie.org/ontology#>
-    PREFIX fs:     <http://fairspace.io/ontology#>
+    PREFIX fs:     <https://fairspace.nl/ontology#>
     PREFIX ncit:   <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
     PREFIX gender: <http://hl7.org/fhir/administrative-gender#>
-    
+
     SELECT DISTINCT ?sample
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -70,10 +70,10 @@ def sparql_query():
         'Count samples by nature, gender and event type': {
             'query': """
     PREFIX curie:  <https://institut-curie.org/ontology#>
-    PREFIX fs:     <http://fairspace.io/ontology#>
+    PREFIX fs:     <https://fairspace.nl/ontology#>
     PREFIX ncit:   <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
     PREFIX gender: <http://hl7.org/fhir/administrative-gender#>
-    
+
     SELECT COUNT(DISTINCT ?sample)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -91,9 +91,9 @@ def sparql_query():
         'First 500 samples by nature': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT DISTINCT ?sample
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -109,9 +109,9 @@ def sparql_query():
         'Count samples by nature': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT COUNT(DISTINCT ?sample)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -125,9 +125,9 @@ def sparql_query():
         'First 500 samples by nature and cellularity': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT DISTINCT ?sample
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -145,9 +145,9 @@ def sparql_query():
         'Count samples by nature and cellularity': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT COUNT(DISTINCT ?sample)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -163,10 +163,10 @@ def sparql_query():
         'First 500 samples by nature, event type and analysis type': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
     PREFIX analysis: <https://institut-curie.org/analysis#>
-    
+
     SELECT DISTINCT ?sample
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -187,10 +187,10 @@ def sparql_query():
         'Count samples by nature, event type and analysis type': {
             'query': """
     PREFIX curie: <https://institut-curie.org/ontology#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
     PREFIX analysis: <https://institut-curie.org/analysis#>
-    
+
     SELECT COUNT(DISTINCT ?sample)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -209,8 +209,8 @@ def sparql_query():
         'First 500 files': {
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
@@ -227,8 +227,8 @@ def sparql_query():
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX dcat:  <http://www.w3.org/ns/dcat#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT count(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
@@ -242,8 +242,8 @@ def sparql_query():
         'First 500 files with path prefix (STRSTARTS)': {
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
@@ -260,8 +260,8 @@ def sparql_query():
         'Count files with path prefix (STRSTARTS)': {
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT COUNT(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
@@ -276,8 +276,8 @@ def sparql_query():
         'First 500 files with path prefix (belongsTo)': {
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
@@ -295,8 +295,8 @@ def sparql_query():
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX dcat:  <http://www.w3.org/ns/dcat#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
-    
+    PREFIX fs:    <https://fairspace.nl/ontology#>
+
     SELECT count(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
@@ -310,11 +310,11 @@ def sparql_query():
 
         'Files filtered by sample nature, analysis type': {
             'query': """
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX curie: <https://institut-curie.org/ontology#>
     PREFIX analysis: <https://institut-curie.org/analysis#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
@@ -331,11 +331,11 @@ def sparql_query():
 
         'Count files filtered by sample nature, analysis type': {
             'query': """
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX curie: <https://institut-curie.org/ontology#>
     PREFIX analysis: <https://institut-curie.org/analysis#>
     PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
-    
+
     SELECT count(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
@@ -350,9 +350,9 @@ def sparql_query():
 
         'Files filtered by keyword': {
             'query': """
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX dcat:  <http://www.w3.org/ns/dcat#>
-    
+
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
@@ -367,9 +367,9 @@ def sparql_query():
 
         'Count files filtered by keyword': {
             'query': """
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX dcat:  <http://www.w3.org/ns/dcat#>
-    
+
     SELECT COUNT (DISTINCT ?location)
     WHERE {
       ?location a fs:File .
@@ -384,9 +384,9 @@ def sparql_query():
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX dcat:  <http://www.w3.org/ns/dcat#>
-    PREFIX fs:    <http://fairspace.io/ontology#>
+    PREFIX fs:    <https://fairspace.nl/ontology#>
     PREFIX curie: <https://institut-curie.org/ontology#>
-    
+
     SELECT count(DISTINCT ?location)
     WHERE {
       ?sample a curie:BiologicalSample .
@@ -404,7 +404,7 @@ def sparql_query():
             'query': """
     PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX curie: <https://institut-curie.org/ontology#>
-    
+
     SELECT ?topography ?label
     WHERE {
       ?topography a curie:Topography .

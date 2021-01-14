@@ -18,7 +18,7 @@ import numpy
 from fairspace_api.api import FairspaceApi
 
 CURIE = Namespace('https://institut-curie.org/ontology#')
-FS = Namespace('http://fairspace.io/ontology#')
+FS = Namespace('https://fairspace.nl/ontology#')
 ANALYSIS = Namespace('https://institut-curie.org/analysis#')
 SUBJECT = Namespace('http://example.com/subjects#')
 EVENT = Namespace('http://example.com/events#')
@@ -126,7 +126,7 @@ class TestData:
         return {result['id']['value']: result['label']['value'] for result in self.api.query_sparql(f"""
             PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX curie: <https://institut-curie.org/ontology#>
-            
+
             SELECT ?id ?label
             WHERE {{
               ?id a curie:{taxonomy} .
