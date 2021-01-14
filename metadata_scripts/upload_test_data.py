@@ -102,7 +102,7 @@ class TestData:
                 username='organisation-admin-ci',
                 password=password
             )
-        self.root = Namespace(f'{fairspace_url}/api/v1/webdav/')
+        self.root = Namespace(f'{fairspace_url}/api/webdav/')
 
     def update_taxonomies(self):
         # Update taxonomies
