@@ -29,13 +29,13 @@ select count(*) from collection where type = 'File';
 
 select count(*) from collection
 where type = 'File'
-  and id like 'http://localhost:8080/api/v1/webdav/collection%202020-11-16-2/%'
+  and id like 'http://localhost:8080/api/webdav/collection%202020-11-16-2/%'
 ;
 
 explain analyse
 select * from collection
 where type = 'File'
-  and id like 'http://localhost:8080/api/v1/webdav/collection%202020-11-16-2/%'
+  and id like 'http://localhost:8080/api/webdav/collection%202020-11-16-2/%'
 order by id
 limit 500
 ;

@@ -94,7 +94,7 @@ class FairspaceApi:
             'Authorization': f'Bearer {token}',
             'Accept': 'application/json'
         }
-        response = self.current_session.get(f'{self.url}/api/v1/users/current',
+        response = self.current_session.get(f'{self.url}/api/users/current',
                                             headers=headers)
         log.info(f"Initialised session for user {response.json()['username']}")
 
@@ -105,7 +105,7 @@ class FairspaceApi:
 
     def find_or_create_workspace(self, name):
         # Fetch existing workspaces
-        response = self.session().get(f'{self.url}/api/v1/workspaces/')
+        response = self.session().get(f'{self.url}/api/workspaces/')
         if not response.ok:
             log.error('Error fetching workspaces')
             log.error(f'{response.status_code} {response.reason}')
@@ -120,7 +120,7 @@ class FairspaceApi:
         headers = {
             'Content-type': 'application/json'
         }
-        response: Response = self.session().put(f'{self.url}/api/v1/workspaces/',
+        response: Response = self.session().put(f'{self.url}/api/workspaces/',
                                                 data=json.dumps({'name': name, 'comment': name}),
                                                 headers=headers)
         if not response.ok:
@@ -136,7 +136,7 @@ class FairspaceApi:
         headers = {
             'Depth': '0'
         }
-        req = Request('PROPFIND', f'{self.url}/api/v1/webdav/{path}/', headers, cookies=self.session().cookies)
+        req = Request('PROPFIND', f'{self.url}/api/webdav/{path}/', headers, cookies=self.session().cookies)
         response = self.session().send(req.prepare())
         return response.ok
 
@@ -145,7 +145,7 @@ class FairspaceApi:
             return
         # Create directory
         headers = {} if workspace is None else {'Owner': workspace['iri']}
-        req = Request('MKCOL', f'{self.url}/api/v1/webdav/{path}/', headers, cookies=self.session().cookies)
+        req = Request('MKCOL', f'{self.url}/api/webdav/{path}/', headers, cookies=self.session().cookies)
         response: Response = self.session().send(req.prepare())
         if not response.ok:
             log.error(f"Error creating directory '{path}'!")
@@ -155,7 +155,7 @@ class FairspaceApi:
     def upload_files(self, path, files):
         # Upload files
         start = time.time()
-        response = self.session().post(f'{self.url}/api/v1/webdav/{path}/',
+        response = self.session().post(f'{self.url}/api/webdav/{path}/',
                                        data={'action': 'upload_files'},
                                        files=files)
         if not response.ok:
@@ -180,7 +180,7 @@ class FairspaceApi:
             log.error(f'Unsupported format: {fmt}')
             sys.exit(1)
         headers = {'Content-type': content_type}
-        response = self.session().put(f"{self.url}/api/v1/metadata/",
+        response = self.session().put(f"{self.url}/api/metadata/",
                                       data=data if fmt == 'turtle' else json.dumps(data),
                                       headers=headers)
         if not response.ok:
@@ -198,7 +198,7 @@ class FairspaceApi:
             'Content-Type': 'application/sparql-query',
             'Accept': 'application/json'
         }
-        response = self.session().post(f"{self.url}/api/v1/rdf/query", data=query, headers=headers)
+        response = self.session().post(f"{self.url}/api/rdf/query", data=query, headers=headers)
         if not response.ok:
             log.error('Error querying metadata!')
             log.error(f'{response.status_code} {response.reason}')
@@ -210,7 +210,7 @@ class FairspaceApi:
         headers = {
             'Accept': 'application/json'
         }
-        response = self.session().get(f"{self.url}/api/v1/views/", headers=headers)
+        response = self.session().get(f"{self.url}/api/views/", headers=headers)
         if not response.ok:
             log.error(f'Error retrieving view config!')
             log.error(f'{response.status_code} {response.reason}')
@@ -237,7 +237,7 @@ class FairspaceApi:
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        response = self.session().post(f"{self.url}/api/v1/views/", data=json.dumps(data), headers=headers)
+        response = self.session().post(f"{self.url}/api/views/", data=json.dumps(data), headers=headers)
         if not response.ok:
             log.error(f'Error retrieving {view} view page!')
             log.error(f'{response.status_code} {response.reason}')
@@ -257,7 +257,7 @@ class FairspaceApi:
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        response = self.session().post(f"{self.url}/api/v1/views/count", data=json.dumps(data), headers=headers)
+        response = self.session().post(f"{self.url}/api/views/count", data=json.dumps(data), headers=headers)
         if not response.ok:
             log.error(f'Error retrieving count for {view} view!')
             log.error(f'{response.status_code} {response.reason}')

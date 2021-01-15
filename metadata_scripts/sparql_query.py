@@ -247,7 +247,7 @@ def sparql_query():
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
-      FILTER ( STRSTARTS(STR(?location), 'http://localhost:8080/api/v1/webdav/collection%202020-11-16-2') )
+      FILTER ( STRSTARTS(STR(?location), 'http://localhost:8080/api/webdav/collection%202020-11-16-2') )
       FILTER NOT EXISTS { ?location fs:dateDeleted ?anyDateDeleted }
     }
     # ORDER BY ?location
@@ -265,7 +265,7 @@ def sparql_query():
     SELECT COUNT(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
-      FILTER ( STRSTARTS(STR(?location), 'http://localhost:8080/api/v1/webdav/collection%202020-11-16-2') )
+      FILTER ( STRSTARTS(STR(?location), 'http://localhost:8080/api/webdav/collection%202020-11-16-2') )
       FILTER NOT EXISTS { ?location fs:dateDeleted ?anyDateDeleted }
     }
     """,
@@ -281,7 +281,7 @@ def sparql_query():
     SELECT DISTINCT ?location
     WHERE {
       ?location a fs:File .
-      ?location fs:belongsTo* <http://localhost:8080/api/v1/webdav/collection%202020-11-16-2> .
+      ?location fs:belongsTo* <http://localhost:8080/api/webdav/collection%202020-11-16-2> .
       FILTER NOT EXISTS { ?location fs:dateDeleted ?anyDateDeleted }
     }
     # ORDER BY ?location
@@ -300,7 +300,7 @@ def sparql_query():
     SELECT count(DISTINCT ?location)
     WHERE {
       ?location a fs:File .
-      ?location fs:belongsTo* <http://localhost:8080/api/v1/webdav/collection%202020-11-16-2> .
+      ?location fs:belongsTo* <http://localhost:8080/api/webdav/collection%202020-11-16-2> .
       FILTER NOT EXISTS { ?location fs:dateDeleted ?anyDateDeleted }
     }
     """,
