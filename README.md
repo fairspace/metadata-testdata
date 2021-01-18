@@ -86,7 +86,7 @@ api = FairspaceApi()
 query = """
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX curie: <https://institut-curie.org/ontology#>
-PREFIX fs:    <http://fairspace.io/ontology#>
+PREFIX fs:    <https://fairspace.nl/ontology#>
 
 SELECT ?sample ?sampleTopography ?sampleNature ?sampleOrigin ?tumorCellularity ?event ?tumorTopography ?morphology ?eventType
     ?laterality ?tumorGradeType ?tumorGradeValue ?tnmType ?tnmT ?tnmN ?tnmM ?ageAtDiagnosis ?subject ?gender
