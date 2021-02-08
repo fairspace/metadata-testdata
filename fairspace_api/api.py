@@ -1,8 +1,9 @@
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict
 
 import requests
 import sys
@@ -19,6 +20,16 @@ def report_duration(task, start):
         log.info(f'{task} took {duration:.0f}s.')
     else:
         log.info(f'{task} took {1000*duration:.0f}ms.')
+
+
+def use_or_read_value(value: str, variable: str) -> str:
+    if value is not None and len(value) > 0:
+        return value
+    value = os.environ.get(variable)
+    log.info(f'Reading variable {variable} from environment.')
+    if value is None or len(value) == 0:
+        raise Exception(f'Please configure the {variable} environment variable.')
+    return value
 
 
 @dataclass
@@ -40,21 +51,21 @@ class Page:
 
 class FairspaceApi:
     def __init__(self,
-                 url='http://localhost:8080',
-                 keycloak_url='http://localhost:5100',
-                 realm='fairspace',
-                 client_id='workspace-client',
-                 client_secret='**********',
-                 username='organisation-admin',
-                 password='fairspace123'
+                 url=None,
+                 keycloak_url=None,
+                 realm=None,
+                 client_id=None,
+                 client_secret=None,
+                 username=None,
+                 password=None
                  ):
-        self.url = url
-        self.keycloak_url = keycloak_url
-        self.realm = realm
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.username = username
-        self.password = password
+        self.url = use_or_read_value(url, 'FAIRSPACE_URL')
+        self.keycloak_url = use_or_read_value(keycloak_url, 'KEYCLOAK_URL')
+        self.realm = use_or_read_value(realm, 'KEYCLOAK_REALM')
+        self.client_id = use_or_read_value(client_id, 'KEYCLOAK_CLIENT_ID')
+        self.client_secret = use_or_read_value(client_secret, 'KEYCLOAK_CLIENT_SECRET')
+        self.username = use_or_read_value(username, 'KEYCLOAK_USERNAME')
+        self.password = use_or_read_value(password, 'KEYCLOAK_PASSWORD')
         self.current_session: Optional[Session] = None
         self.token_expiry = None
 
@@ -152,7 +163,7 @@ class FairspaceApi:
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
 
-    def upload_files(self, path, files):
+    def upload_files(self, path, files: Dict[str, any]):
         # Upload files
         start = time.time()
         response = self.session().post(f'{self.url}/api/webdav/{path}/',

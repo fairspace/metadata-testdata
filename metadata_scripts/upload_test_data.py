@@ -36,12 +36,12 @@ def random_subset(items, count: int):
 class TestData:
     def __init__(self):
         self.empty_files = True
-        self.subject_count = 1000
-        self.event_count = 1500
-        self.sample_count = 3000
-        self.collection_count = 5
-        self.dirs_per_collection = 50
-        self.files_per_dir = 500
+        self.subject_count = os.environ.get('SUBJECT_COUNT', 1000)
+        self.event_count = os.environ.get('EVENT_COUNT', 1500)
+        self.sample_count = os.environ.get('SAMPLE_COUNT', 3000)
+        self.collection_count = os.environ.get('COLLECTION_COUNT', 5)
+        self.dirs_per_collection = os.environ.get('DIRS_PER_COLLECTION', 50)
+        self.files_per_dir = os.environ.get('FILES_PER_DIR', 500)
 
         self.words = [
             'beverage',
@@ -79,30 +79,13 @@ class TestData:
         self.sample_event: Dict[str, str] = {}
         self.event_topography: Dict[str, str] = {}
 
-        local = os.environ.get('LOCAL') is None or os.environ.get('LOCAL').lower() == 'true'
-        if local:
-            fairspace_url = 'http://localhost:8080'
+        try:
             self.api = FairspaceApi()
-        else:
-            fairspace_url = 'https://fairspace.ci.fairway.app'
-            client_secret = os.environ.get('CLIENT_SECRET')
-            if client_secret is None or len(client_secret) == 0:
-                log.error('Please configure the CLIENT_SECRET environment variable.')
-                sys.exit(1)
-            password = os.environ.get('KEYCLOAK_PASSWORD')
-            if password is None or len(password) == 0:
-                log.error('Please configure the KEYCLOAK_PASSWORD environment variable.')
-                sys.exit(1)
-            self.api = FairspaceApi(
-                url=fairspace_url,
-                keycloak_url='https://keycloak.ci.fairway.app',
-                realm='ci',
-                client_id='fairspace-ci-private',
-                client_secret=client_secret,
-                username='organisation-admin-ci',
-                password=password
-            )
-        self.root = Namespace(f'{fairspace_url}/api/webdav/')
+        except Exception as e:
+            log.error(e)
+            sys.exit(1)
+
+        self.root = Namespace(f'{self.api.url}/api/webdav/')
 
     def update_taxonomies(self):
         # Update taxonomies

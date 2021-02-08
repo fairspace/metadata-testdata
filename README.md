@@ -15,16 +15,34 @@ pip install .
 
 ## Testdata generation
 
-Please check if the settings in [`upload_test_data.py`](metadata_scripts/upload_test_data.py) are adequate.
-Do not forget to reinstall the package after any changes.
+Configure the connection settings using environment variables (either specify using the shell or create a file `.env`). Example for a local development environment:
+```shell
+FAIRSPACE_URL=http://localhost:8080
+KEYCLOAK_URL=http://localhost:5100
+KEYCLOAK_REALM=fairspace
+KEYCLOAK_CLIENT_ID=workspace-client
+KEYCLOAK_CLIENT_SECRET=**********
+KEYCLOAK_USERNAME=organisation-admin
+KEYCLOAK_PASSWORD=fairspace123
+```
 
 Run the script:
-```
+```shell
 upload_test_data
 ```
-This uploads 30,000 subjects, 60,000 tumor pathology events,
-120,000 samples and creates 10, each containing 100
-directories with 1,500 files.
+This uploads 1,000 subjects, 1,500 tumor pathology events,
+3,000 samples and creates 5 collection, each containing 50
+directories with 500 files.
+
+These numbers can be changed using environment variables:
+```shell
+SUBJECT_COUNT=1000
+EVENT_COUNT=1500
+SAMPLE_COUNT=3000
+COLLECTION_COUNT=5
+DIRS_PER_COLLECTION=50
+FILES_PER_DIR=500
+```
 
 Or run with different parameters:
 ```python
