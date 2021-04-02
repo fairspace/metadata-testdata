@@ -36,12 +36,12 @@ def random_subset(items, count: int):
 class TestData:
     def __init__(self):
         self.empty_files = True
-        self.subject_count = os.environ.get('SUBJECT_COUNT', 1000)
-        self.event_count = os.environ.get('EVENT_COUNT', 1500)
-        self.sample_count = os.environ.get('SAMPLE_COUNT', 3000)
-        self.collection_count = os.environ.get('COLLECTION_COUNT', 5)
-        self.dirs_per_collection = os.environ.get('DIRS_PER_COLLECTION', 50)
-        self.files_per_dir = os.environ.get('FILES_PER_DIR', 500)
+        self.subject_count = int(os.environ.get('SUBJECT_COUNT', 1000))
+        self.event_count = int(os.environ.get('EVENT_COUNT', 1500))
+        self.sample_count = int(os.environ.get('SAMPLE_COUNT', 3000))
+        self.collection_count = int(os.environ.get('COLLECTION_COUNT', 5))
+        self.dirs_per_collection = int(os.environ.get('DIRS_PER_COLLECTION', 50))
+        self.files_per_dir = int(os.environ.get('FILES_PER_DIR', 500))
 
         self.words = [
             'beverage',
