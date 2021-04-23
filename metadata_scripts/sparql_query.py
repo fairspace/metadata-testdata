@@ -420,7 +420,6 @@ def sparql_query():
         if 'skip' in contents and contents['skip']:
             print('(Skipped)\n')
             continue
-        api.init_session()
         start = time.time()
         results = api.query_sparql(contents['query'])
         duration = time.time() - start
