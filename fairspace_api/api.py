@@ -9,7 +9,7 @@ import requests
 import sys
 
 from rdflib import Graph
-from requests import Request, Session, Response
+from requests import Response
 
 log = logging.getLogger('fairspace_api')
 
@@ -19,7 +19,7 @@ def report_duration(task, start):
     if duration >= 1:
         log.info(f'{task} took {duration:.0f}s.')
     else:
-        log.info(f'{task} took {1000*duration:.0f}ms.')
+        log.info(f'{task} took {1000 * duration:.0f}ms.')
 
 
 def use_or_read_value(value: str, variable: str) -> str:
@@ -66,7 +66,7 @@ class FairspaceApi:
         self.client_secret = use_or_read_value(client_secret, 'KEYCLOAK_CLIENT_SECRET')
         self.username = use_or_read_value(username, 'KEYCLOAK_USERNAME')
         self.password = use_or_read_value(password, 'KEYCLOAK_PASSWORD')
-        self.current_session: Optional[Session] = None
+        self.current_token: Optional[str] = None
         self.token_expiry = None
 
     def fetch_token(self) -> str:
@@ -95,28 +95,20 @@ class FairspaceApi:
             sys.exit(1)
         data = response.json()
         token = data['access_token']
+        self.current_token = token
         self.token_expiry = time.time() + data['expires_in']
         return token
 
-    def init_session(self):
-        token = self.fetch_token()
-        self.current_session = Session()
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Accept': 'application/json'
-        }
-        response = self.current_session.get(f'{self.url}/api/users/current',
-                                            headers=headers)
-        log.info(f"Initialised session for user {response.json()['username']}")
-
-    def session(self) -> Session:
-        if self.current_session is None or self.token_expiry is None or self.token_expiry <= time.time() + 5:
-            self.init_session()
-        return self.current_session
+    def get_token(self) -> str:
+        token_expiration_buffer = 5
+        if self.token_expiry is None or self.token_expiry <= time.time() + token_expiration_buffer:
+            return self.fetch_token()
+        return self.current_token
 
     def find_or_create_workspace(self, name):
         # Fetch existing workspaces
-        response = self.session().get(f'{self.url}/api/workspaces/')
+        headers = {'Authorization': 'Bearer ' + self.get_token()}
+        response = requests.get(f'{self.url}/api/workspaces/', headers=headers)
         if not response.ok:
             log.error('Error fetching workspaces')
             log.error(f'{response.status_code} {response.reason}')
@@ -128,12 +120,10 @@ class FairspaceApi:
 
         # Create new workspace
         log.info('Creating new workspace ...')
-        headers = {
-            'Content-type': 'application/json'
-        }
-        response: Response = self.session().put(f'{self.url}/api/workspaces/',
-                                                data=json.dumps({'name': name, 'comment': name}),
-                                                headers=headers)
+        headers['Content-type'] = 'application/json'
+        response: Response = requests.put(f'{self.url}/api/workspaces/',
+                                          data=json.dumps({'name': name, 'comment': name}),
+                                          headers=headers)
         if not response.ok:
             log.error('Error creating workspace!')
             log.error(f'{response.status_code} {response.reason}')
@@ -145,19 +135,20 @@ class FairspaceApi:
         """ Check if a path exists
         """
         headers = {
-            'Depth': '0'
+            'Depth': '0',
+            'Authorization': 'Bearer ' + self.get_token()
         }
-        req = Request('PROPFIND', f'{self.url}/api/webdav/{path}/', headers, cookies=self.session().cookies)
-        response = self.session().send(req.prepare())
+        response = requests.request('PROPFIND', f'{self.url}/api/webdav/{path}/', headers=headers)
         return response.ok
 
     def ensure_dir(self, path, workspace=None):
         if self.exists(path):
             return
         # Create directory
-        headers = {} if workspace is None else {'Owner': workspace['iri']}
-        req = Request('MKCOL', f'{self.url}/api/webdav/{path}/', headers, cookies=self.session().cookies)
-        response: Response = self.session().send(req.prepare())
+        headers = {'Authorization': 'Bearer ' + self.get_token()}
+        if workspace is not None:
+            headers['Owner'] = workspace['iri']
+        response: Response = requests.request('MKCOL', f'{self.url}/api/webdav/{path}/', headers=headers)
         if not response.ok:
             log.error(f"Error creating directory '{path}'!")
             log.error(f'{response.status_code} {response.reason}')
@@ -166,9 +157,13 @@ class FairspaceApi:
     def upload_files(self, path, files: Dict[str, any]):
         # Upload files
         start = time.time()
-        response = self.session().post(f'{self.url}/api/webdav/{path}/',
-                                       data={'action': 'upload_files'},
-                                       files=files)
+        headers = {
+            'Authorization': 'Bearer ' + self.get_token()
+        }
+        response = requests.post(f'{self.url}/api/webdav/{path}/',
+                                 data={'action': 'upload_files'},
+                                 files=files,
+                                 headers=headers)
         if not response.ok:
             log.error(f"Error uploading files into '{path}'!")
             log.error(f'{response.status_code} {response.reason}')
@@ -190,10 +185,13 @@ class FairspaceApi:
         else:
             log.error(f'Unsupported format: {fmt}')
             sys.exit(1)
-        headers = {'Content-type': content_type}
-        response = self.session().put(f"{self.url}/api/metadata/",
-                                      data=data if fmt == 'turtle' else json.dumps(data),
-                                      headers=headers)
+        headers = {
+            'Content-type': content_type,
+            'Authorization': 'Bearer ' + self.get_token()
+        }
+        response = requests.put(f"{self.url}/api/metadata/",
+                                data=data if fmt == 'turtle' else json.dumps(data),
+                                headers=headers)
         if not response.ok:
             log.error('Error uploading metadata!')
             log.error(f'{response.status_code} {response.reason}')
@@ -207,9 +205,10 @@ class FairspaceApi:
         start = time.time()
         headers = {
             'Content-Type': 'application/sparql-query',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.get_token()
         }
-        response = self.session().post(f"{self.url}/api/rdf/query", data=query, headers=headers)
+        response = requests.post(f"{self.url}/api/rdf/query", data=query, headers=headers)
         if not response.ok:
             log.error('Error querying metadata!')
             log.error(f'{response.status_code} {response.reason}')
@@ -219,9 +218,10 @@ class FairspaceApi:
 
     def retrieve_view_config(self) -> Page:
         headers = {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.get_token()
         }
-        response = self.session().get(f"{self.url}/api/views/", headers=headers)
+        response = requests.get(f"{self.url}/api/views/", headers=headers)
         if not response.ok:
             log.error(f'Error retrieving view config!')
             log.error(f'{response.status_code} {response.reason}')
@@ -246,9 +246,10 @@ class FairspaceApi:
             data['filters'] = filters
         headers = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.get_token()
         }
-        response = self.session().post(f"{self.url}/api/views/", data=json.dumps(data), headers=headers)
+        response = requests.post(f"{self.url}/api/views/", data=json.dumps(data), headers=headers)
         if not response.ok:
             log.error(f'Error retrieving {view} view page!')
             log.error(f'{response.status_code} {response.reason}')
@@ -266,9 +267,10 @@ class FairspaceApi:
             data['filters'] = filters
         headers = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.get_token()
         }
-        response = self.session().post(f"{self.url}/api/views/count", data=json.dumps(data), headers=headers)
+        response = requests.post(f"{self.url}/api/views/count", data=json.dumps(data), headers=headers)
         if not response.ok:
             log.error(f'Error retrieving count for {view} view!')
             log.error(f'{response.status_code} {response.reason}')
