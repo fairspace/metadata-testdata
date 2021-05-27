@@ -161,6 +161,12 @@ class TestData:
             return self.gender_ids[1]
         return self.gender_ids[2]
 
+    def get_unique_label(self, prefix: str, sub_id: str, graph: Graph, n: int = 5) -> str:
+        new_label = f'{prefix}-{sub_id[0:n]}'
+        if graph.value(None, RDFS.label, Literal(new_label)) and n < len(sub_id):
+            return self.get_unique_label(prefix, sub_id, graph, n+1)
+        return new_label
+
     def generate_and_upload_subjects(self):
         # Add random subjects
         self.subject_ids = [str(uuid.uuid4()) for n in range(self.subject_count)]
@@ -168,7 +174,8 @@ class TestData:
         for subject_id in self.subject_ids:
             subject_ref = SUBJECT[subject_id]
             graph.add((subject_ref, RDF.type, CURIE.Subject))
-            graph.add((subject_ref, RDFS.label, Literal(f'Subject {subject_id}')))
+            label = self.get_unique_label('SUBJECT', subject_id, graph)
+            graph.add((subject_ref, RDFS.label, Literal(label)))
             graph.add((subject_ref, CURIE.isOfGender, URIRef(self.select_gender())))
             graph.add((subject_ref, CURIE.isOfSpecies, HOMO_SAPIENS))
         log.info(f'Adding {len(self.subject_ids):,} subjects ...')
@@ -185,7 +192,8 @@ class TestData:
         for event_id in self.event_ids:
             event_ref = EVENT[event_id]
             graph.add((event_ref, RDF.type, CURIE.TumorPathologyEvent))
-            graph.add((event_ref, RDFS.label, Literal(f'Tumor pathology event {event_id}')))
+            label = self.get_unique_label('TPE', event_id, graph)
+            graph.add((event_ref, RDFS.label, Literal(label)))
             graph.add((event_ref, CURIE.eventSubject,
                        SUBJECT[self.event_subject[event_id]]))
             graph.add((event_ref, CURIE.topography,
@@ -230,7 +238,8 @@ class TestData:
         for sample_id in self.sample_ids:
             sample_ref = SAMPLE[sample_id]
             graph.add((sample_ref, RDF.type, CURIE.BiologicalSample))
-            graph.add((sample_ref, RDFS.label, Literal(f'Sample {sample_id}')))
+            label = self.get_unique_label('SAMPLE', sample_id, graph)
+            graph.add((sample_ref, RDFS.label, Literal(label)))
             graph.add((sample_ref, CURIE.isOfNature,
                        URIRef(self.nature_ids[random.randint(0, len(self.nature_ids) - 1)])))
             graph.add((sample_ref, CURIE.tumorCellularity,
