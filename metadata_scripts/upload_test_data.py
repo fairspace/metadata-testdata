@@ -268,16 +268,19 @@ class TestData:
         return [SUBJECT[self.subject_ids[i]]
                 for i in random.sample(range(0, len(self.subject_ids) - 1), count)]
 
+    def link_sample_to_file(self, graph: Graph, ref: URIRef):
+        sample_id = list(self.sample_event.keys())[random.randint(0, len(self.sample_event) - 1)]
+        event_id = self.sample_event[sample_id]
+        subject_id = self.event_subject[event_id]
+        graph.add((ref, CURIE.sample, SAMPLE[sample_id]))
+        graph.add((ref, CURIE.aboutEvent, EVENT[event_id]))
+        graph.add((ref, CURIE.aboutSubject, SUBJECT[subject_id]))
+
     def add_file_subject_sample_event_fragment(self, graph: Graph, ref: URIRef):
         dice = random.randint(1, 6)
         if dice == 1:
             # sample with event
-            sample_id = list(self.sample_event.keys())[random.randint(0, len(self.sample_event) - 1)]
-            event_id = self.sample_event[sample_id]
-            subject_id = self.event_subject[event_id]
-            graph.add((ref, CURIE.sample, SAMPLE[sample_id]))
-            graph.add((ref, CURIE.aboutEvent, EVENT[event_id]))
-            graph.add((ref, CURIE.aboutSubject, SUBJECT[subject_id]))
+            self.link_sample_to_file(graph, ref)
             return
         if dice == 2:
             # random subjects
@@ -285,9 +288,9 @@ class TestData:
                 graph.add((ref, CURIE.aboutSubject, subject_ref))
             return
         if dice == 3:
-            # random samples
-            for sample_ref in self.select_samples():
-                graph.add((ref, CURIE.sample, sample_ref))
+            # two samples
+            self.link_sample_to_file(graph, ref)
+            self.link_sample_to_file(graph, ref)
             return
         return
 
