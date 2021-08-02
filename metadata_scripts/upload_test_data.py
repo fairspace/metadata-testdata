@@ -63,6 +63,8 @@ class TestData:
         ]
         # Taxonomies
         self.gender_ids: Sequence[str] = []
+        self.availability_ids: Sequence[str] = []
+        self.consent_answer_ids: Sequence[str] = []
         self.topography_ids: Sequence[str] = []
         self.morphology_ids: Sequence[str] = []
         self.laterality_ids: Sequence[str] = []
@@ -149,6 +151,17 @@ class TestData:
         self.gender_ids = list(genders.keys())
         self.gender_ids.sort()
 
+        log.info('Fetching availability values ...')
+        availabilities = self.query_taxonomy('AvailabilityForResearch')
+        self.availability_ids = list(availabilities.keys())
+        self.availability_ids.sort()
+
+        log.info('Fetching consent answers ...')
+        consent_answers = self.query_taxonomy('ConsentAnswer')
+        self.consent_answer_ids = list(consent_answers.keys())
+        self.consent_answer_ids.sort()
+
+
     def select_gender(self):
         """
         male:female:undifferentiated = 4:4:1
@@ -178,6 +191,15 @@ class TestData:
             graph.add((subject_ref, RDFS.label, Literal(label)))
             graph.add((subject_ref, CURIE.isOfGender, URIRef(self.select_gender())))
             graph.add((subject_ref, CURIE.isOfSpecies, HOMO_SAPIENS))
+            if (random.randint(1, 2) == 1):
+                graph.add((subject_ref, CURIE.availableForResearch,
+                           URIRef(self.availability_ids[random.randint(0, len(self.availability_ids) - 1)])))
+                graph.add((subject_ref, CURIE.reuseClinicalWithGeneticData,
+                           URIRef(self.consent_answer_ids[random.randint(0, len(self.consent_answer_ids) - 1)])))
+                graph.add((subject_ref, CURIE.sampleStorageAndReuse,
+                           URIRef(self.consent_answer_ids[random.randint(0, len(self.consent_answer_ids) - 1)])))
+                graph.add((subject_ref, CURIE.geneticAnalysis,
+                           URIRef(self.consent_answer_ids[random.randint(0, len(self.consent_answer_ids) - 1)])))
         log.info(f'Adding {len(self.subject_ids):,} subjects ...')
         self.api.upload_metadata_graph(graph)
 
