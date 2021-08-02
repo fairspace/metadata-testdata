@@ -105,7 +105,7 @@ class FairspaceApi:
             return self.fetch_token()
         return self.current_token
 
-    def find_or_create_workspace(self, name):
+    def find_or_create_workspace(self, code):
         # Fetch existing workspaces
         headers = {'Authorization': 'Bearer ' + self.get_token()}
         response = requests.get(f'{self.url}/api/workspaces/', headers=headers)
@@ -114,7 +114,7 @@ class FairspaceApi:
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
         workspaces = response.json()
-        matches = [ws for ws in workspaces if ws['name'] == name]
+        matches = [ws for ws in workspaces if ws['code'] == code]
         if len(matches) > 0:
             return matches[0]
 
@@ -122,7 +122,7 @@ class FairspaceApi:
         log.info('Creating new workspace ...')
         headers['Content-type'] = 'application/json'
         response: Response = requests.put(f'{self.url}/api/workspaces/',
-                                          data=json.dumps({'name': name, 'comment': name}),
+                                          data=json.dumps({'code': code, 'comment': code}),
                                           headers=headers)
         if not response.ok:
             log.error('Error creating workspace!')
