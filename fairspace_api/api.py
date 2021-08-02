@@ -122,7 +122,7 @@ class FairspaceApi:
         log.info('Creating new workspace ...')
         headers['Content-type'] = 'application/json'
         response: Response = requests.put(f'{self.url}/api/workspaces/',
-                                          data=json.dumps({'code': code, 'comment': code}),
+                                          data=json.dumps({'code': code, 'title': code}),
                                           headers=headers)
         if not response.ok:
             log.error('Error creating workspace!')
