@@ -281,7 +281,7 @@ class TestData:
                 for i in random.sample(range(0, len(self.sample_ids) - 1), count)]
 
     def select_analysis_types(self) -> Sequence[URIRef]:
-        count = min(int(numpy.random.exponential(.4)), len(self.analysis_ids) - 1)
+        count = 1 if random.randint(1, 6) == 1 else 0
         return [URIRef(self.analysis_ids[i])
                 for i in random.sample(range(0, len(self.analysis_ids) - 1), count)]
 
