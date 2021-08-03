@@ -15,7 +15,9 @@ pip install .
 
 ## Testdata generation
 
-Configure the connection settings using environment variables (either specify using the shell or create a file `.env`). Example for a local development environment:
+Configure the connection settings using environment variables (either specify using the shell or create a file `.env`). 
+Make sure that the user specified in the config has an `Admin` and `Query metadata` roles.
+Example for a local development environment:
 ```shell
 FAIRSPACE_URL=http://localhost:8080
 KEYCLOAK_URL=http://localhost:5100
