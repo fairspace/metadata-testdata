@@ -355,6 +355,12 @@ class TestData:
                 log.info(f'Adding metadata for {len(files)} files to {path} ...')
                 self.api.upload_metadata_graph(graph)
 
+    def reindex(self):
+        log.info('Triggering recreation of a view database from the RDF database...')
+        self.api.reindex()
+        log.info("Reindexing started!")
+
+
     def run(self):
         self.update_taxonomies()
         self.update_collection_type_labels()
@@ -363,6 +369,7 @@ class TestData:
         self.generate_and_upload_events()
         self.generate_and_upload_samples()
         self.generate_and_upload_collections()
+        self.reindex()
 
 
 def main():

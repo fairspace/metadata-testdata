@@ -276,3 +276,15 @@ class FairspaceApi:
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
         return Count(**response.json())
+
+    def reindex(self):
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.get_token()
+        }
+        response = requests.post(f"{self.url}/api/maintenance/reindex", None, headers=headers)
+        if not response.ok:
+            log.error(f'Error reindexing!')
+            log.error(f'{response.status_code} {response.reason}')
+            sys.exit(1)
+
