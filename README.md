@@ -62,6 +62,9 @@ def testrun():
 testrun()
 ```
 
+At the end of the script a recreation of the Fairspace view database will be triggered, based on the updated RDF database.
+This can take up to 2 minutes for the default count parameters configuration.
+
 ## Run queries
 
 The `retrieve_view` command retrieves the first page of samples by default,
