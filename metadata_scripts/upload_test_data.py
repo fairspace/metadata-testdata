@@ -69,6 +69,7 @@ class TestData:
         self.morphology_ids: Sequence[str] = []
         self.laterality_ids: Sequence[str] = []
         self.event_type_ids: Sequence[str] = []
+        self.natures: dict = {}
         self.nature_ids: Sequence[str] = []
         self.analysis_ids: Sequence[str] = []
 
@@ -139,8 +140,8 @@ class TestData:
         self.event_type_ids = list(event_types.keys())
 
         log.info('Fetching sample natures ...')
-        natures = self.query_taxonomy('SampleNature')
-        self.nature_ids = list(natures.keys())
+        self.natures = self.query_taxonomy('SampleNature')
+        self.nature_ids = list(self.natures.keys())
 
         log.info('Fetching analysis types ...')
         analysis_types = self.query_taxonomy('AnalysisType')
@@ -173,6 +174,22 @@ class TestData:
         if dice < 9:
             return self.gender_ids[1]
         return self.gender_ids[2]
+
+    def find_child_sample_nature_for_parent(self, parent_nature_id):
+        parent_children_relations = {
+            "Paraffin Embedded Tissue (FFPE)": ["Tumor Cell Line"],
+            "Tumor Cell Line": ["DNA", "RNA"],
+            "Blood": ["Peripheral Blood Mononuclear Cell"],
+            "Peripheral Blood Mononuclear Cell": ["RNA"]
+        }
+        try:
+            parent_nature_label = self.natures[str(parent_nature_id)]
+            child_nature_label = random.choice(parent_children_relations[parent_nature_label])
+            for nature_id, nature_label in self.natures.items():
+                if nature_label == child_nature_label:
+                    return nature_id
+        except:
+            log.debug("No child sample nature found.")
 
     def get_unique_label(self, prefix: str, sub_id: str, graph: Graph, n: int = 5) -> str:
         new_label = f'{prefix}-{sub_id[0:n]}'
@@ -253,20 +270,48 @@ class TestData:
         graph.add((sample_ref, CURIE.topography,
                    URIRef(self.topography_ids[random.randint(0, len(self.topography_ids) - 1)])))
 
+    def add_sample_fragment_based_on_parent(self, graph: Graph, sample_id: str, parent_sample_id):
+        sample_ref = SAMPLE[sample_id]
+        parent_sample_ref = SAMPLE[parent_sample_id]
+        graph.add((sample_ref, CURIE.isChildOf, parent_sample_ref))
+        parent_sample_event = graph.value(parent_sample_ref, CURIE.diagnosis, None)
+        if parent_sample_event:
+            graph.add((sample_ref, CURIE.diagnosis, parent_sample_event))
+        parent_sample_subject = graph.value(parent_sample_ref, CURIE.subject, None)
+        if parent_sample_subject:
+            graph.add((sample_ref, CURIE.subject, parent_sample_subject))
+        parent_sample_topography = graph.value(parent_sample_ref, CURIE.topography, None)
+        if parent_sample_topography:
+            graph.add((sample_ref, CURIE.topography, parent_sample_topography))
+
     def generate_and_upload_samples(self):
         # Add random samples
         self.sample_ids = [str(uuid.uuid4()) for n in range(self.sample_count)]
         graph = Graph()
-        for sample_id in self.sample_ids:
+        for idx, sample_id in enumerate(self.sample_ids):
             sample_ref = SAMPLE[sample_id]
             graph.add((sample_ref, RDF.type, CURIE.BiologicalSample))
             label = self.get_unique_label('SAMPLE', sample_id, graph)
             graph.add((sample_ref, RDFS.label, Literal(label)))
-            graph.add((sample_ref, CURIE.isOfNature,
-                       URIRef(self.nature_ids[random.randint(0, len(self.nature_ids) - 1)])))
             graph.add((sample_ref, CURIE.tumorCellularity,
                        Literal(max(0, min(int(numpy.random.standard_normal() * 15) + 50, 100)))))
-            self.add_sample_diagnosis_subject_topography_fragment(graph, sample_id)
+
+            sample_nature_id = None
+            parent_sample_id = None
+            dice = random.randint(1, 6)
+            if idx > 1 and dice > 5:
+                parent_sample_id = self.sample_ids[idx-1]
+                parent_sample_nature_id = graph.value(SAMPLE[parent_sample_id], CURIE.isOfNature, None)
+                sample_nature_id = self.find_child_sample_nature_for_parent(parent_sample_nature_id)
+            if sample_nature_id is not None:
+                graph.add((sample_ref, CURIE.parentIsOfNature, URIRef(parent_sample_nature_id)))
+                graph.add((sample_ref, CURIE.isOfNature, URIRef(sample_nature_id)))
+                self.add_sample_fragment_based_on_parent(graph, sample_id, parent_sample_id)
+            else:
+                sample_nature_id = self.nature_ids[random.randint(0, len(self.nature_ids) - 1)]
+                graph.add((sample_ref, CURIE.isOfNature, URIRef(sample_nature_id)))
+                self.add_sample_diagnosis_subject_topography_fragment(graph, sample_id)
+
         log.info(f'Adding {len(self.sample_ids):,} samples ...')
         self.api.upload_metadata_graph(graph)
 
