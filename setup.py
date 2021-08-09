@@ -17,7 +17,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='fairspace-metadata-testdata',
-    version='0.0.3',
+    version='0.0.4',
     description="Script to generate test data for Fairspace",
     author="Gijs Kant",
     author_email='gijs@thehyve.nl',
