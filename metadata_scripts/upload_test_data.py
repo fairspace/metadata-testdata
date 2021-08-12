@@ -32,6 +32,9 @@ log = logging.getLogger('testdata')
 def random_subset(items, count: int):
     return [items[i] for i in random.sample(range(0, len(items) - 1), count)]
 
+def report_duration(task, start):
+        duration = 1000.0 * (time.time() - start)
+        log.info(f'* {task} took {duration:.0f}ms')
 
 class TestData:
     def __init__(self):
@@ -217,8 +220,9 @@ class TestData:
                            URIRef(self.consent_answer_ids[random.randint(0, len(self.consent_answer_ids) - 1)])))
                 graph.add((subject_ref, CURIE.geneticAnalysis,
                            URIRef(self.consent_answer_ids[random.randint(0, len(self.consent_answer_ids) - 1)])))
-        log.info(f'Adding {len(self.subject_ids):,} subjects ...')
+
         self.api.upload_metadata_graph(graph)
+        log.info(f'#subjects: {self.subject_count:.0f}')
 
     def generate_and_upload_events(self):
         # Add random tumor pathology events
@@ -245,8 +249,9 @@ class TestData:
                        URIRef(self.event_type_ids[random.randint(0, len(self.event_type_ids) - 1)])))
             graph.add((event_ref, CURIE.term('ageAtDiagnosis'),
                        Literal(max(0, min(int(numpy.random.standard_normal() * 15) + 50, 120)))))
-        log.info(f'Adding {len(self.event_ids):,} tumor pathology events ...')
         self.api.upload_metadata_graph(graph)
+        self.subject_count
+        log.info(f'#events: {self.event_count:.0f}')
 
     def add_sample_diagnosis_subject_topography_fragment(self, graph: Graph, sample_id: str):
         sample_ref = SAMPLE[sample_id]
@@ -312,8 +317,8 @@ class TestData:
                 graph.add((sample_ref, CURIE.isOfNature, URIRef(sample_nature_id)))
                 self.add_sample_diagnosis_subject_topography_fragment(graph, sample_id)
 
-        log.info(f'Adding {len(self.sample_ids):,} samples ...')
         self.api.upload_metadata_graph(graph)
+        log.info(f'#samples: {self.event_count:.0f}')
 
     def select_keywords(self) -> Sequence[str]:
         count = min(int(numpy.random.exponential(1.3)), len(self.words) - 1)
@@ -362,8 +367,6 @@ class TestData:
         return
 
     def generate_and_upload_collections(self):
-        log.info('Preparing workspace and collection for uploading ...')
-
         workspace = self.api.find_or_create_workspace('test')
 
         collection_name_prefix = f'collection {datetime.now().strftime("%Y-%m-%d_%H_%M")}'
@@ -372,49 +375,112 @@ class TestData:
             collection_name = f'{collection_name_prefix}-{m}'
             self.api.ensure_dir(collection_name, workspace)
 
-            # Upload test files
-            for n in range(self.dirs_per_collection):
-                if n % 10 == 0:
-                    time.sleep(5)
+        log.info(f'#collections: {self.collection_count:.0f}')
 
-                path = f'{collection_name}/dir_{n}'
-                self.api.ensure_dir(path)
+        return collection_name_prefix
 
-                files = {f'coffee_{m}.jpg': 'coffee.jpg' for m in range(self.files_per_dir)}
+    def generate_and_upload_files(self, collection_name_prefix):
+            workspace = self.api.find_or_create_workspace('test')
 
-                log.info(f'Adding {self.files_per_dir:,} files into {path} ...')
-                if self.empty_files:
-                    self.api.upload_empty_files(path, files.keys())
-                else:
-                    self.api.upload_files_by_path(path, files)
+            fileCount = 0
 
-                # Annotate files with metadata
-                graph = Graph()
-                for file_name in files.keys():
-                    file_id = self.root[f'{quote(path)}/{quote(file_name)}']
-                    for analysis_type in self.select_analysis_types():
-                        graph.add((file_id, CURIE.analysisType, analysis_type))
-                    for keyword in self.select_keywords():
-                        graph.add((file_id, DCAT.keyword, Literal(keyword)))
-                    self.add_file_subject_sample_event_fragment(graph, file_id)
-                log.info(f'Adding metadata for {len(files)} files to {path} ...')
-                self.api.upload_metadata_graph(graph)
+            for m in range(self.collection_count):
+                collection_name = f'{collection_name_prefix}-{m}'
+
+                # Upload test files
+                for n in range(self.dirs_per_collection):
+                    if n % 10 == 0:
+                        time.sleep(5)
+
+                    path = f'{collection_name}/dir_{n}'
+                    self.api.ensure_dir(path)
+
+                    files = {f'coffee_{m}.jpg': 'coffee.jpg' for m in range(self.files_per_dir)}
+
+                    if self.empty_files:
+                        self.api.upload_empty_files(path, files.keys())
+                    else:
+                        self.api.upload_files_by_path(path, files)
+
+                    fileCount = fileCount + 1
+
+            log.info(f'#files: {fileCount:.0f}')
+
+    def generate_and_upload_file_metadata(self, collection_name_prefix):
+            count = 0
+
+            workspace = self.api.find_or_create_workspace('test')
+
+            for m in range(self.collection_count):
+                collection_name = f'{collection_name_prefix}-{m}'
+
+                # Upload test files
+                for n in range(self.dirs_per_collection):
+                    if n % 10 == 0:
+                        time.sleep(5)
+
+                    path = f'{collection_name}/dir_{n}'
+                    files = {f'coffee_{m}.jpg': 'coffee.jpg' for m in range(self.files_per_dir)}
+
+                    # Annotate files with metadata
+                    graph = Graph()
+                    for file_name in files.keys():
+                        file_id = self.root[f'{quote(path)}/{quote(file_name)}']
+                        for analysis_type in self.select_analysis_types():
+                            graph.add((file_id, CURIE.analysisType, analysis_type))
+                        for keyword in self.select_keywords():
+                            graph.add((file_id, DCAT.keyword, Literal(keyword)))
+                        self.add_file_subject_sample_event_fragment(graph, file_id)
+                    self.api.upload_metadata_graph(graph)
+                    count = count + 1
+
+            log.info(f'#annotations: {count:.0f}')
 
     def reindex(self):
         log.info('Triggering recreation of a view database from the RDF database...')
         self.api.reindex()
         log.info("Reindexing started!")
 
-
     def run(self):
+        start = time.time()
         self.update_taxonomies()
+        report_duration('updating taxonomies', start)
+
+        start = time.time()
         self.update_collection_type_labels()
+        report_duration('update_collection_type_labels', start)
+
+        start = time.time()
         self.fetch_taxonomy_data()
+        report_duration('fetch_taxonomy_data', start)
+
+        start = time.time()
         self.generate_and_upload_subjects()
+        report_duration('upload_subjects', start)
+
+        start = time.time()
         self.generate_and_upload_events()
+        report_duration('upload_events', start)
+
+        start = time.time()
         self.generate_and_upload_samples()
-        self.generate_and_upload_collections()
+        report_duration('upload_samples', start)
+
+        start = time.time()
+        collection_prefix = self.generate_and_upload_collections()
+        report_duration('upload_collections', start)
+
+        start = time.time()
+        self.generate_and_upload_files(collection_prefix)
+        report_duration('upload_files', start)
+
+        start = time.time()
+        self.generate_and_upload_file_metadata(collection_prefix)
+        report_duration('upload_file_metadata', start)
+
+        start = time.time()
         self.reindex()
+        report_duration('reindex', start)
 
 
 def main():

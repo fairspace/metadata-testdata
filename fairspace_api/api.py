@@ -13,15 +13,6 @@ from requests import Response
 
 log = logging.getLogger('fairspace_api')
 
-
-def report_duration(task, start):
-    duration = time.time() - start
-    if duration >= 1:
-        log.info(f'{task} took {duration:.0f}s.')
-    else:
-        log.info(f'{task} took {1000 * duration:.0f}ms.')
-
-
 def use_or_read_value(value: str, variable: str) -> str:
     if value is not None and len(value) > 0:
         return value
@@ -168,7 +159,6 @@ class FairspaceApi:
             log.error(f"Error uploading files into '{path}'!")
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
-        report_duration('Uploading files', start)
 
     def upload_files_by_path(self, path, files):
         self.upload_files(path, {filename: open(file, 'rb') for (filename, file) in files.items()})
@@ -196,7 +186,6 @@ class FairspaceApi:
             log.error('Error uploading metadata!')
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
-        report_duration('Uploading metadata', start)
 
     def upload_metadata_graph(self, graph: Graph):
         self.upload_metadata('turtle', graph.serialize(format='turtle').decode('utf-8'))
@@ -213,7 +202,6 @@ class FairspaceApi:
             log.error('Error querying metadata!')
             log.error(f'{response.status_code} {response.reason}')
             sys.exit(1)
-        report_duration('Querying', start)
         return response.json()
 
     def retrieve_view_config(self) -> Page:
