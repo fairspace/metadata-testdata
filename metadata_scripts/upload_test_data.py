@@ -222,11 +222,17 @@ class TestData:
 
     def generate_and_upload_events(self):
         # Add random tumor pathology events
+        dice = random.randint(1, 6)
         self.event_ids = [str(uuid.uuid4()) for n in range(self.event_count)]
         self.event_subject = {event_id: self.subject_ids[random.randint(0, len(self.subject_ids) - 1)]
                               for event_id in self.event_ids}
-        self.event_topography = {event_id: self.topography_ids[random.randint(0, len(self.topography_ids) - 1)]
-                                 for event_id in self.event_ids}
+        self.event_topography = dict()
+        for event_id in self.event_ids:
+            topographies = set([self.topography_ids[random.randint(0, len(self.topography_ids) - 1)]])
+            if dice < 4:
+                topographies.add(self.topography_ids[random.randint(0, len(self.topography_ids) - 1)])
+            self.event_topography[event_id] = topographies
+
         graph = Graph()
         for event_id in self.event_ids:
             event_ref = EVENT[event_id]
@@ -235,16 +241,20 @@ class TestData:
             graph.add((event_ref, RDFS.label, Literal(label)))
             graph.add((event_ref, CURIE.eventSubject,
                        SUBJECT[self.event_subject[event_id]]))
-            graph.add((event_ref, CURIE.topography,
-                       URIRef(self.event_topography[event_id])))
-            graph.add((event_ref, CURIE.tumorMorphology,
-                       URIRef(self.morphology_ids[random.randint(0, len(self.morphology_ids) - 1)])))
+            [graph.add((event_ref, CURIE.topography, URIRef(t))) for t in self.event_topography[event_id]]
+
+            morphologies = set([self.morphology_ids[random.randint(0, len(self.morphology_ids) - 1)]])
+            if dice < 3:
+                morphologies.add(self.morphology_ids[random.randint(0, len(self.morphology_ids) - 1)])
+            [graph.add((event_ref, CURIE.tumorMorphology, URIRef(m))) for m in morphologies]
+
             graph.add((event_ref, CURIE.tumorLaterality,
                        URIRef(self.laterality_ids[random.randint(0, len(self.laterality_ids) - 1)])))
             graph.add((event_ref, CURIE.eventType,
                        URIRef(self.event_type_ids[random.randint(0, len(self.event_type_ids) - 1)])))
             graph.add((event_ref, CURIE.term('ageAtDiagnosis'),
                        Literal(max(0, min(int(numpy.random.standard_normal() * 15) + 50, 120)))))
+
         log.info(f'Adding {len(self.event_ids):,} tumor pathology events ...')
         self.api.upload_metadata_graph(graph)
 
@@ -258,7 +268,7 @@ class TestData:
             self.sample_subject[sample_id] = subject_id
             graph.add((sample_ref, CURIE.subject, SUBJECT[subject_id]))
             graph.add((sample_ref, CURIE.diagnosis, EVENT[event_id]))
-            graph.add((sample_ref, CURIE.topography, URIRef(self.event_topography[event_id])))
+            graph.add((sample_ref, CURIE.topography, URIRef(next(iter(self.event_topography[event_id])))))
             return
         if dice < 5:
             subject_id = self.subject_ids[random.randint(0, len(self.subject_ids) - 1)]
@@ -274,6 +284,7 @@ class TestData:
         sample_ref = SAMPLE[sample_id]
         parent_sample_ref = SAMPLE[parent_sample_id]
         graph.add((sample_ref, CURIE.isChildOf, parent_sample_ref))
+
         parent_sample_event = graph.value(parent_sample_ref, CURIE.diagnosis, None)
         if parent_sample_event:
             graph.add((sample_ref, CURIE.diagnosis, parent_sample_event))
